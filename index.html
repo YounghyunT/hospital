@@ -3,432 +3,372 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>대한민국 반려동물 양육 가구 인포그래픽</title>
+    <title>순천시 병원 현황 시각화</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            background-color: #f0f4f8;
+            background-color: #f3f4f6;
+            color: #374151;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
         }
-        .chart-container {
-            position: relative;
+        .container {
             width: 100%;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 300px;
-            max-height: 400px;
+            max-width: 960px;
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            box-sizing: border-box;
         }
-        @media (min-width: 768px) {
-            .chart-container {
-                height: 350px;
-            }
+        .details-section {
+            background-color: #f9fafb;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            overflow: hidden;
+            transition: all 0.3s ease-in-out;
+            max-height: 0;
+            opacity: 0;
         }
-        .kpi-value {
-            font-weight: 900;
-            color: #118AB2;
+        .details-section.open {
+            max-height: 500px; /* 충분히 큰 값으로 설정하여 부드러운 애니메이션 효과 */
+            opacity: 1;
         }
-        .kpi-label {
-            font-weight: 700;
-            color: #073B4C;
+        .toggle-button {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background-color: #e5e7eb;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
         }
-        .section-title {
-            font-size: 2.25rem;
-            font-weight: 900;
-            color: #073B4C;
-            text-align: center;
+        .analysis-section h2 {
+            font-weight: bold;
+            font-size: 1.5rem;
+            margin-top: 2rem;
             margin-bottom: 1rem;
         }
-        .section-subtitle {
-            font-size: 1.125rem;
-            color: #555;
-            text-align: center;
-            max-width: 800px;
-            margin: 0 auto 3rem auto;
-        }
-        .card {
-            background-color: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #073B4C;
+        .analysis-section h3 {
+            font-weight: bold;
+            font-size: 1.25rem;
+            margin-top: 1.5rem;
             margin-bottom: 0.5rem;
         }
-        .card-description {
-            color: #333;
-            margin-bottom: 1.5rem;
-            flex-grow: 1;
+        .sql-code {
+            background-color: #1e293b; /* slate-800 */
+            color: #e2e8f0; /* slate-200 */
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .sql-code .comment {
+            color: #94a3b8; /* slate-400 */
+        }
+        .sql-code .keyword {
+            color: #fcd34d; /* amber-300 */
+        }
+        .sql-code .string {
+            color: #6ee7b7; /* emerald-300 */
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body>
 
-    <div class="container mx-auto p-4 md:p-8">
-
-        <header class="text-center my-12">
-            <h1 class="text-4xl md:text-6xl font-black text-[#073B4C] leading-tight">우리 집엔 '반려동물'이 살아요</h1>
-            <p class="text-xl md:text-2xl text-[#118AB2] mt-4 font-bold">대한민국 반려동물 양육 가구 및 펫코노미 트렌드 분석</p>
-        </header>
-
-        <main>
-            <section id="overview" class="mb-16">
-                <h2 class="section-title">한 눈에 보는 대한민국 반려동물 현황</h2>
-                <p class="section-subtitle">이제 반려동물은 우리 사회의 중요한 구성원입니다. 최신 데이터를 통해 얼마나 많은 가구가 반려동물과 함께하고 있는지 살펴보세요.</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-center">
-                    <div class="card p-8">
-                        <p class="kpi-value text-6xl">28.6%</p>
-                        <p class="kpi-label text-2xl mt-2">반려동물 양육 가구 비율 (2024)</p>
-                    </div>
-                    <div class="card p-8">
-                        <p class="kpi-value text-6xl">591만</p>
-                        <p class="kpi-label text-2xl mt-2">전체 양육 가구 수</p>
-                    </div>
-                    <div class="card p-8 md:col-span-2 lg:col-span-1">
-                        <p class="kpi-value text-6xl">11.2%p↑</p>
-                        <p class="kpi-label text-2xl mt-2">14년간 양육 비율 증가 (2010년 대비)</p>
-                    </div>
-                </div>
-            </section>
-            
-            <section id="growth-trend" class="mb-16">
-                <div class="card md:col-span-2">
-                    <h3 class="card-title">꾸준히 늘어나는 반려동물 가족</h3>
-                    <p class="card-description">2010년부터 2024년까지 반려동물 양육 가구 비율은 꾸준히 상승하며, 우리 사회의 중요한 라이프스타일 변화를 보여줍니다.</p>
-                    <div class="chart-container h-80 md:h-96">
-                        <canvas id="householdGrowthChart"></canvas>
-                    </div>
-                </div>
-            </section>
-
-            <section id="costs" class="mb-16">
-                <h2 class="section-title">행복한 동행의 비용</h2>
-                <p class="section-subtitle">반려동물과 함께하는 삶에는 책임과 비용이 따릅니다. 월 평균 양육비와 주요 지출 항목을 통해 현실적인 양육 환경을 알아봅니다.</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="card">
-                        <h3 class="card-title">월 평균 양육비 비교 (2024년)</h3>
-                        <p class="card-description">반려견과 반려묘의 월 평균 양육비는 약 4만 5천원의 차이를 보이며, 반려견의 양육비가 더 높은 것으로 나타났습니다.</p>
-                        <div class="chart-container">
-                            <canvas id="costComparisonChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h3 class="card-title">주요 지출 항목</h3>
-                        <p class="card-description">양육비 중 가장 큰 비중을 차지하는 것은 '사료 및 간식비'와 '병원 진료비'입니다. 이는 건강한 삶에 대한 반려인들의 높은 관심을 반영합니다.</p>
-                        <div class="chart-container">
-                            <canvas id="expenseBreakdownChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="adoption" class="mb-16">
-                <h2 class="section-title">우리가 가족이 되는 방법</h2>
-                <p class="section-subtitle">반려동물을 맞이하는 경로는 다양합니다. 지인 간의 분양부터 동물보호시설 입양까지, 다양한 입양 경로의 비중을 확인해보세요.</p>
-                <div class="card">
-                    <h3 class="card-title">반려동물 입양 경로</h3>
-                    <p class="card-description">여전히 지인을 통한 무료 분양이 가장 높은 비중을 차지하고 있지만, 동물보호시설을 통한 입양도 꾸준히 이루어지고 있습니다.</p>
-                    <div class="chart-container h-96">
-                        <canvas id="adoptionSourceChart"></canvas>
-                    </div>
-                    </div>
-            </section>
-            
-            <section id="market" class="mb-16">
-                <h2 class="section-title">급성장하는 '펫코노미' 시장</h2>
-                <p class="section-subtitle">반려동물 양육 인구 증가는 관련 산업의 폭발적인 성장으로 이어지고 있습니다. '펫코노미' 시장의 현재와 미래를 조망합니다.</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                    <div class="card text-center p-8 bg-[#FFD166]">
-                        <p class="text-2xl font-bold text-[#073B4C]">2022년 시장 규모</p>
-                        <p class="text-6xl font-black text-white my-4">8.5조 원</p>
-                    </div>
-                    <div class="card text-center p-8 bg-[#06D6A0]">
-                        <p class="text-2xl font-bold text-[#073B4C]">2032년 시장 전망</p>
-                        <p class="text-6xl font-black text-white my-4">21조 원</p>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="card text-center">
-                        <div class="text-6xl mb-4">💎</div>
-                        <h3 class="text-2xl font-bold text-[#118AB2]">프리미엄화</h3>
-                        <p class="mt-2 text-gray-600">고품질 사료, 기능성 영양제 등 반려동물의 건강과 삶의 질을 높이는 프리미엄 제품 소비가 증가하고 있습니다.</p>
-                    </div>
-                    <div class="card text-center">
-                        <div class="text-6xl mb-4">🏥</div>
-                        <h3 class="text-2xl font-bold text-[#118AB2]">서비스 다양화</h3>
-                        <p class="mt-2 text-gray-600">펫 보험, 유치원, 호텔, 장례 서비스 등 생애주기 전반에 걸친 전문적인 케어 서비스가 확대되고 있습니다.</p>
-                    </div>
-                    <div class="card text-center">
-                        <div class="text-6xl mb-4">📱</div>
-                        <h3 class="text-2xl font-bold text-[#118AB2]">펫테크의 부상</h3>
-                        <p class="mt-2 text-gray-600">자동 급식기, 스마트 장난감, 원격 헬스케어 등 IT 기술을 접목한 제품들이 반려인의 편의를 돕고 있습니다.</p>
-                    </div>
-                </div>
-            </section>
-
-            <section id="regional-data" class="mb-16">
-                <h2 class="section-title">지역별 반려동물 양육 현황</h2>
-                <p class="section-subtitle">전국 평균과 비교하여 전라남도의 반려동물 양육 가구 비율을 살펴보세요.</p>
-                <div class="card">
-                    <h3 class="card-title">지역별 반려동물 양육 가구 비율 (2024년)</h3>
-                    <p class="card-description">전라남도는 전국 평균 대비 약간 낮은 양육 가구 비율을 보이지만, 여전히 상당수의 가구가 반려동물과 함께하고 있습니다.</p>
-                    <div class="chart-container">
-                        <canvas id="regionalChart"></canvas>
-                    </div>
-                </div>
-            </section>
-            
-            <section id="data-sources" class="mb-16">
-                <h2 class="section-title">데이터 출처</h2>
-                <div class="card">
-                    <p class="text-gray-600 mb-4">본 인포그래픽은 다음과 같은 가상의 데이터 소스를 기반으로 제작되었습니다.</p>
-                    <ul class="list-disc list-inside text-gray-700">
-                        <li>농림축산식품부, "2024년 반려동물 양육 실태조사"</li>
-                        <li>KB금융지주 경영연구소, "2024 한국 반려동물 보고서"</li>
-                        <li>한국농촌경제연구원, "반려동물 산업 동향 분석 보고서"</li>
-                    </ul>
-                </div>
-            </section>
-        </main>
-
-        <footer class="text-center py-8 mt-12 border-t border-gray-300">
-            <p class="text-gray-600">Infographic by Canvas Infographics</p>
-        </footer>
-
+<div class="container">
+    <h1 class="text-4xl font-bold text-center mb-6">순천시 병원 현황 시각화</h1>
+    <p class="text-lg text-center text-gray-600 mb-8">병원 종류별 분포를 원형 차트로 확인하세요.</p>
+    <div class="relative w-full h-96 mb-8">
+        <canvas id="hospitalChart"></canvas>
     </div>
 
-    <script>
-        const FONT_COLOR = '#073B4C';
-        const GRID_COLOR = '#D1D5DB';
-        const PALETTE = {
-            red: '#FF6B6B',
-            yellow: '#FFD166',
-            green: '#06D6A0',
-            blue: '#118AB2',
-            darkBlue: '#073B4C'
-        };
+    <div id="detailsContainer"></div>
 
-        Chart.defaults.font.family = "'Noto Sans KR', sans-serif";
-        Chart.defaults.color = FONT_COLOR;
-        Chart.defaults.plugins.legend.position = 'bottom';
+    <div class="mt-8 text-center text-sm text-gray-500">
+        <p><strong>출처:</strong> 공공데이터포털(전라남도 순천시_병원(의원, 한의원, 치과의원) 현황_20210901)</p>
+        <p>데이터는 2021년 9월 1일 기준입니다.</p>
+    </div>
 
-        const tooltipTitleCallback = (tooltipItems) => {
-            const item = tooltipItems[0];
-            let label = item.chart.data.labels[item.dataIndex];
-            if (Array.isArray(label)) {
-                return label.join(' ');
-            } else {
-                return label;
-            }
-        };
+    <!-- 순천시 국립의대 및 대학병원 필요성 분석 섹션 -->
+    <div class="analysis-section mt-12 pt-8 border-t border-gray-200">
+        <h2 class="text-3xl font-bold text-center mb-6">순천시 국립의대 및 대학병원 설립 필요성 분석</h2>
+        <div class="mb-6">
+            <h3 class="text-xl font-bold">서론</h3>
+            <p class="text-gray-700">전라남도 동부권은 200만 명에 달하는 인구 규모에 비해 중증 질환을 치료할 수 있는 의료 인프라가 부족하다는 심각한 문제에 직면해 있습니다. 이러한 의료 격차를 해소하고 지역민의 건강권을 보장하기 위해 순천시에 <strong>국립 의과대학 및 대학병원을 설립해야 한다는 목소리가 높습니다.</strong> 본 분석은 이 두 시설이 왜 필수적인지에 대한 논리적 근거를 제시하고자 합니다.</p>
+        </div>
+        <div class="mb-6">
+            <h3 class="text-xl font-bold">전라남도 동부권의 의료 공백 문제</h3>
+            <p class="text-gray-700">현재 순천을 포함한 전남 동부권은 수도권이나 광주광역시와 비교했을 때 상급종합병원이 전무합니다. 이로 인해 심혈관계 질환, 암 등 응급 상황이 발생했을 때 골든 타임을 놓치는 안타까운 사례가 발생하고 있습니다. 환자들은 고난도 수술이나 전문적인 치료를 받기 위해 먼 거리를 이동해야 하는 불편함을 겪고 있으며, 이는 경제적·심리적 부담으로 이어집니다. 지역 내 의료진 부족 문제 또한 심각하여, 안정적인 의료 서비스 공급이 어려운 상황입니다.</p>
+        </div>
+        <div class="mt-10 mb-6">
+            <h3 class="text-xl font-bold text-center">국립의대 및 대학병원 설립의 필요성</h3>
+            <div class="grid md:grid-cols-3 gap-8 mt-6">
+                <!-- 1. 의료 격차 해소 -->
+                <div class="flex flex-col items-center text-center p-6 bg-green-100 rounded-xl shadow-lg">
+                    <svg class="w-16 h-16 text-green-600 mb-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+                    </svg>
+                    <p class="text-lg font-bold text-green-800 mb-2">의료 격차 해소</p>
+                    <p class="text-sm text-gray-700">지역 의료 공백을 메우고, 중증 질환에 대한 전문적이고 신속한 치료를 가능하게 하여 지역민의 건강권을 보장합니다.</p>
+                </div>
+                <!-- 2. 의료 인재 양성 -->
+                <div class="flex flex-col items-center text-center p-6 bg-blue-100 rounded-xl shadow-lg">
+                    <svg class="w-16 h-16 text-blue-600 mb-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 15.93l-6-3v-5.06l6 3.03 6-3.03v5.06l-6 3zM12 14L6 11l6-3 6 3-6 3z"/>
+                    </svg>
+                    <p class="text-lg font-bold text-blue-800 mb-2">의료 인재 양성</p>
+                    <p class="text-sm text-gray-700">지역 맞춤형 인재를 직접 양성하고, 이들이 지역 대학병원에서 수련하여 안정적으로 지역 의료 시스템에 정착하도록 돕습니다.</p>
+                </div>
+                <!-- 3. 지역 경제 활성화 -->
+                <div class="flex flex-col items-center text-center p-6 bg-yellow-100 rounded-xl shadow-lg">
+                    <svg class="w-16 h-16 text-yellow-600 mb-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M11 17h2v-6h-2v6zm4 0h2v-6h-2v6zm-8 0h2v-6h-2v6zm-2 4h18V3H3v18zM5 5h14v14H5V5z"/>
+                    </svg>
+                    <p class="text-lg font-bold text-yellow-800 mb-2">지역 경제 활성화</p>
+                    <p class="text-sm text-gray-700">고용 창출과 유동 인구 증가로 지역 상권을 활성화하고, 첨단 의료 기술 연구의 중심지로서 도시 경쟁력을 강화합니다.</p>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h3 class="text-xl font-bold">결론 및 기대 효과</h3>
+            <p class="text-gray-700">순천시에 국립의대와 대학병원을 설립하는 것은 단순한 병원 확충을 넘어, 전라남도 동부권 전체의 의료 환경을 혁신적으로 개선하는 전략적 투자입니다. 이를 통해 지역민은 더 가까운 곳에서 양질의 의료 서비스를 받을 수 있게 되며, 안정적인 의료 인력 공급과 지역 경제 활성화라는 두 마리 토끼를 모두 잡을 수 있습니다. 궁극적으로 이는 순천시가 <strong>'모두가 건강하고 행복한 도시'</strong>로 나아가는 중요한 전환점이 될 것입니다.</p>
+        </div>
+    </div>
+
+    <!-- SQL 실습 예제 섹션 -->
+    <div class="mt-12 pt-8 border-t border-gray-200">
+        <h2 class="text-3xl font-bold text-center mb-6">SQL 실습 예제</h2>
+        <p class="text-center text-gray-700 mb-6">제공된 순천시 병원 데이터를 활용한 간단한 SQL 쿼리 예시입니다. 가상의 `HOSPITALS` 테이블을 기반으로 작성되었습니다.</p>
         
-        const sharedOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        title: tooltipTitleCallback
-                    },
-                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                    titleFont: { size: 14 },
-                    bodyFont: { size: 12 },
-                    padding: 10,
-                    cornerRadius: 4
-                }
-            }
-        };
+        <div class="space-y-8">
+            <!-- 테이블 생성 및 데이터 추가 -->
+            <div>
+                <h3 class="text-xl font-bold mb-2">테이블 생성 및 데이터 추가</h3>
+                <p class="text-sm text-gray-600 mb-4">쿼리 실행을 위해 `HOSPITALS` 테이블을 생성하고, 몇 개의 샘플 데이터를 삽입합니다.</p>
+                <pre class="sql-code"><code>
+<span class="comment">-- 테이블이 이미 존재할 경우 삭제</span>
+<span class="keyword">DROP TABLE</span> <span class="keyword">IF EXISTS</span> HOSPITALS;
 
-        function wrapLabel(label, maxLength = 16) {
-            if (label.length <= maxLength) {
-                return label;
-            }
-            const words = label.split(' ');
-            const lines = [];
-            let currentLine = '';
-            for (const word of words) {
-                if ((currentLine + word).length > maxLength) {
-                    lines.push(currentLine.trim());
-                    currentLine = '';
+<span class="comment">-- 병원 정보 테이블 생성</span>
+<span class="keyword">CREATE TABLE</span> HOSPITALS (
+    id <span class="keyword">INT</span> <span class="keyword">PRIMARY KEY</span>,
+    type <span class="keyword">VARCHAR</span>(50),
+    name <span class="keyword">VARCHAR</span>(100),
+    address <span class="keyword">VARCHAR</span>(255),
+    phone <span class="keyword">VARCHAR</span>(20)
+);
+
+<span class="comment">-- 샘플 데이터 삽입</span>
+<span class="keyword">INSERT INTO</span> HOSPITALS (id, type, name, address, phone) <span class="keyword">VALUES</span>
+(1, <span class="string">'한의원'</span>, <span class="string">'담뜰한의원'</span>, <span class="string">'전라남도 순천시 왕지로 36, 2층 203호 (왕지동)'</span>, <span class="string">'061-762-7577'</span>),
+(2, <span class="string">'의원'</span>, <span class="string">'이소아과의원'</span>, <span class="string">'전라남도 순천시 조례못등길 54, 조은프라자 3층'</span>, <span class="string">'061-722-7900'</span>),
+(3, <span class="string">'의원'</span>, <span class="string">'우리들내과의원'</span>, <span class="string">'전라남도 순천시 연향번영길 87 (연향동)'</span>, <span class="string">'061-725-7582'</span>),
+(4, <span class="string">'치과의원'</span>, <span class="string">'새이화치과의원'</span>, <span class="string">'전라남도 순천시 왕지2길 17 (왕지동)'</span>, <span class="string">'061-722-2875'</span>),
+(5, <span class="string">'치과의원'</span>, <span class="string">'서울치과의원'</span>, <span class="string">'전라남도 순천시 구암길 2 (연향동)'</span>, <span class="string">'061-744-2875'</span>),
+(6, <span class="string">'치과의원'</span>, <span class="string">'프롬치과의원'</span>, <span class="string">'전라남도 순천시 왕궁길 47, 2층 (조례동)'</span>, <span class="string">'061-725-2775'</span>),
+(7, <span class="string">'한의원'</span>, <span class="string">'송인한의원'</span>, <span class="string">'전라남도 순천시 중앙로 75, 1층 (저전동)'</span>, <span class="string">'061-753-2735'</span>);
+                </code></pre>
+            </div>
+
+            <!-- 예제 1: 모든 병원 정보 조회 -->
+            <div>
+                <h3 class="text-xl font-bold mb-2">1. 모든 병원 정보 조회</h3>
+                <p class="text-sm text-gray-600 mb-4">`HOSPITALS` 테이블의 모든 컬럼(`type`, `name`, `address`, `phone`)과 모든 행을 조회합니다.</p>
+                <pre class="sql-code"><code>
+<span class="keyword">SELECT</span> *
+<span class="keyword">FROM</span> HOSPITALS;
+                </code></pre>
+            </div>
+
+            <!-- 예제 2: 특정 종류의 병원만 조회 -->
+            <div>
+                <h3 class="text-xl font-bold mb-2">2. 특정 종류의 병원만 조회</h3>
+                <p class="text-sm text-gray-600 mb-4">병원 종류가 '치과의원'인 데이터만 필터링하여 조회합니다.</p>
+                <pre class="sql-code"><code>
+<span class="keyword">SELECT</span> *
+<span class="keyword">FROM</span> HOSPITALS
+<span class="keyword">WHERE</span> type = <span class="string">'치과의원'</span>;
+                </code></pre>
+            </div>
+
+            <!-- 예제 3: 종류별 병원 개수 세기 -->
+            <div>
+                <h3 class="text-xl font-bold mb-2">3. 종류별 병원 개수 세기</h3>
+                <p class="text-sm text-gray-600 mb-4">`GROUP BY`를 사용하여 병원 종류별 총 개수를 집계합니다.</p>
+                <pre class="sql-code"><code>
+<span class="keyword">SELECT</span> type, <span class="keyword">COUNT</span>(*) <span class="keyword">AS</span> count
+<span class="keyword">FROM</span> HOSPITALS
+<span class="keyword">GROUP BY</span> type;
+                </code></pre>
+            </div>
+
+            <!-- 예제 4: 특정 주소에 위치한 병원 찾기 -->
+            <div>
+                <h3 class="text-xl font-bold mb-2">4. 특정 주소에 위치한 병원 찾기</h3>
+                <p class="text-sm text-gray-600 mb-4">`LIKE` 키워드를 사용하여 주소에 '왕지로'가 포함된 병원을 찾습니다.</p>
+                <pre class="sql-code"><code>
+<span class="keyword">SELECT</span> name, address
+<span class="keyword">FROM</span> HOSPITALS
+<span class="keyword">WHERE</span> address <span class="keyword">LIKE</span> <span class="string">'%왕지로%'</span>;
+                </code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // CSV 데이터
+    const csvData = `구분,의료기관명,의료기관주소(도로명),의료기관전화번호
+한의원,담뜰한의원,"전라남도 순천시 왕지로 36, 2층 203호 (왕지동)",061-762-7577
+한의원,하얀미한의원,"전라남도 순천시 왕지4길 9-12, 2층 (왕지동)",
+한의원,송인한의원,"전라남도 순천시 중앙로 75, 1층 (저전동)",061-753-2735
+한의원,홍대영한의원,"전라남도 순천시 중앙로 146-1, 1층 (매곡동)",061-751-1075
+한의원,지리산쌍계한의원,"전라남도 순천시 왕지2길 13-7, 2층 (왕지동)",061-721-0012
+한의원,아이누리한의원,"전라남도 순천시 해룡면 매안로 145, 2층 202호",061-723-0275
+한의원,산들한의원,"전라남도 순천시 삼산로 101, 2층 203호 (용당동, 주상복합)",061-753-3701
+한의원,웃장부부한의원,"전라남도 순천시 중앙로 235, 1층 (덕암동)",061-755-1075
+한의원,늘푸른한의원,"전라남도 순천시 해룡면 신대2길 19, 303호 (신대리, 신대메가타운)",061-722-1075
+한의원,정우한의원,"전라남도 순천시 하풍동 215-6",061-744-8848
+한의원,행복한한의원,"전라남도 순천시 해룡면 신대로 179, 해광샹그릴라2차아파트 101-102호 상가동",061-726-5575
+한의원,바른정한의원,"전라남도 순천시 연향동 1530-10",061-723-5575
+한의원,자연담은한의원,"전라남도 순천시 해룡면 신대지구2길 6, 401호 (신대리, 신대메디컬프라자)",061-721-0010
+의원,이소아과의원,"전라남도 순천시 조례못등길 54, 조은프라자 3층",061-722-7900
+의원,우리들내과의원,"전라남도 순천시 연향번영길 87 (연향동)",061-725-7582
+의원,순천정신과의원,"전라남도 순천시 금곡길 36, 2층 (금곡동)",061-743-3003
+의원,하나연합의원,"전라남도 순천시 해룡면 신대2길 19, 302호 (신대리, 신대메가타운)",061-722-7275
+의원,참빛의원,"전라남도 순천시 중앙로 227-2 (덕암동)",061-753-2775
+의원,대진산부인과의원,"전라남도 순천시 남신월길 50 (가곡동)",061-753-1577
+의원,박성준소아청소년과의원,"전라남도 순천시 이수로 279, 3층 (조례동)",061-723-7575
+의원,윤정원소아과의원,"전라남도 순천시 해룡면 신대로 199, 302호 (신대리, 신대메디컬센터)",061-722-8275
+의원,아름다운소아과의원,"전라남도 순천시 해룡면 매안로 145, 301호 (복성리, 신대메디컬프라자)",061-723-1122
+의원,미래내과의원,"전라남도 순천시 해룡면 신대1길 29, 2층 (신대리, 센트럴빌딩)",061-722-0050
+의원,오승준의원,"전라남도 순천시 이수로 131, 2층 (조례동)",061-722-9111
+의원,새로운내과의원,"전라남도 순천시 해룡면 신대로 177, 2층 (신대리)",061-726-0005
+치과의원,새이화치과의원,"전라남도 순천시 왕지2길 17 (왕지동)",061-722-2875
+치과의원,서울치과의원,"전라남도 순천시 구암길 2 (연향동)",061-744-2875
+치과의원,이사랑치과의원,"전라남도 순천시 해룡면 장선배기길 272, 부영6차가동 2층 3,4호",061-725-2804
+치과의원,프롬치과의원,"전라남도 순천시 왕궁길 47, 2층 (조례동)",061-725-2775
+치과의원,순천수치과의원,"전라남도 순천시 중앙로 353, 2층 (가곡동)",061-752-6511
+치과의원,박석환치과의원,"전라남도 순천시 해룡면 장선배기길 284, 청솔@상가동 201호",061-725-2882
+치과의원,라임치과의원,"전라남도 순천시 이수로 321, 4층 (조례동)",061-721-2804
+치과의원,스마일치과의원,"전라남도 순천시 기적의도서관길 90, 2층 212호 (부영3차아파트)",061-724-2828
+치과의원,누가치과의원,"전라남도 순천시 중앙로 74 (장천동)",061-744-9972
+치과의원,더쎈치과의원,"전라남도 순천시 중앙로 235, 3층 (덕암동)",061-754-0028
+치과의원,명성치과의원,"전라남도 순천시 중앙로 316, 2층 (가곡동)",061-752-2828
+치과의원,연세플란트치과의원,"전라남도 순천시 팔마로 221, 203호 (풍덕동)",061-743-2828
+치과의원,박재현치과의원,"전라남도 순천시 조례1길 19, 2층 (조례동)",061-745-0019
+치과의원,김종진치과의원,"전라남도 순천시 팔마로 218-1 (풍덕동)",061-746-2889
+치과의원,고은치과의원,"전라남도 순천시 조례1길 34, 2층 (조례동)",061-742-2875
+치과의원,정다운치과의원,"전라남도 순천시 연향동 1324-11",061-721-2875
+치과의원,새길치과의원,"전라남도 순천시 조례못등길 54, 3층 (조례동)",061-723-2875
+치과의원,삼성치과의원,"전라남도 순천시 이수로 279, 2층 (조례동)",061-722-2828`;
+
+    // CSV 파싱 및 데이터 집계
+    function parseCsv(csv) {
+        const lines = csv.trim().split('\n');
+        const headers = lines[0].split(',');
+        const data = {};
+
+        // 정규식으로 따옴표 안의 쉼표를 무시하고 분리
+        const lineParser = (line) => line.match(/(?:[^,"]+|"[^"]*")+/g).map(v => v.replace(/"/g, '').trim());
+
+        for (let i = 1; i < lines.length; i++) {
+            const values = lineParser(lines[i]);
+            const type = values[0];
+            const name = values[1];
+            const address = values[2];
+            
+            if (type) {
+                if (!data[type]) {
+                    data[type] = { count: 0, list: [] };
                 }
-                currentLine += word + ' ';
+                data[type].count += 1;
+                data[type].list.push({ name, address });
             }
-            lines.push(currentLine.trim());
-            return lines.filter(line => line);
         }
+        return data;
+    }
 
-        const householdGrowthCtx = document.getElementById('householdGrowthChart').getContext('2d');
-        new Chart(householdGrowthCtx, {
-            type: 'line',
+    window.onload = function() {
+        const hospitalData = parseCsv(csvData);
+
+        // Chart.js를 위한 데이터 준비
+        const labels = Object.keys(hospitalData);
+        const data = Object.values(hospitalData).map(item => item.count);
+        const colors = ['#38a169', '#3182ce', '#ed8936']; // Tailwind colors: green, blue, orange
+
+        const ctx = document.getElementById('hospitalChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
             data: {
-                labels: ['2010', '2024'],
+                labels: labels,
                 datasets: [{
-                    label: '반려동물 양육 가구 비율 (%)',
-                    data: [17.4, 28.6],
-                    borderColor: PALETTE.blue,
-                    backgroundColor: 'rgba(17, 138, 178, 0.2)',
-                    fill: true,
-                    tension: 0.1,
-                    borderWidth: 3,
-                    pointRadius: 6,
-                    pointBackgroundColor: PALETTE.blue,
+                    label: '병원 종류별 개수',
+                    data: data,
+                    backgroundColor: colors,
+                    borderColor: '#ffffff',
+                    borderWidth: 2,
                 }]
             },
             options: {
-                ...sharedOptions,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: GRID_COLOR },
-                        ticks: {
-                            callback: function(value) {
-                                return value + '%';
-                            }
-                        }
-                    },
-                    x: {
-                        grid: { display: false }
-                    }
-                }
-            }
-        });
-
-        const costComparisonCtx = document.getElementById('costComparisonChart').getContext('2d');
-        new Chart(costComparisonCtx, {
-            type: 'bar',
-            data: {
-                labels: ['반려견', '반려묘'],
-                datasets: [{
-                    label: '월 평균 양육 비용 (원)',
-                    data: [175000, 130000],
-                    backgroundColor: [PALETTE.yellow, PALETTE.green],
-                    borderColor: [PALETTE.yellow, PALETTE.green],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                ...sharedOptions,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: GRID_COLOR },
-                        ticks: {
-                            callback: function(value) {
-                                return (value / 10000) + '만원';
-                            }
-                        }
-                    },
-                    x: {
-                        grid: { display: false }
-                    }
-                },
+                responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
-                    ...sharedOptions.plugins,
-                    legend: { display: false }
-                }
-            }
-        });
-
-        const expenseBreakdownCtx = document.getElementById('expenseBreakdownChart').getContext('2d');
-        new Chart(expenseBreakdownCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['사료/간식/영양제', '병원 진료비', '미용', '용품/장난감', '기타'],
-                datasets: [{
-                    data: [45, 30, 10, 10, 5],
-                    backgroundColor: [PALETTE.blue, PALETTE.green, PALETTE.yellow, PALETTE.red, '#cccccc'],
-                }]
-            },
-            options: {
-                ...sharedOptions,
-                cutout: '50%'
-            }
-        });
-
-        const adoptionSourceCtx = document.getElementById('adoptionSourceChart').getContext('2d');
-        const originalLabels = ['지인에게 무료로 분양', '펫숍에서 구입', '동물보호시설에서 입양', '기타'];
-        const wrappedLabels = originalLabels.map(label => wrapLabel(label));
-        new Chart(adoptionSourceCtx, {
-            type: 'bar',
-            data: {
-                labels: wrappedLabels,
-                datasets: [{
-                    label: '입양 경로 비율 (%)',
-                    data: [35.5, 26.2, 12.2, 26.1],
-                    backgroundColor: [PALETTE.blue, PALETTE.green, PALETTE.yellow, PALETTE.red],
-                }]
-            },
-            options: {
-                ...sharedOptions,
-                indexAxis: 'y',
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        grid: { color: GRID_COLOR },
-                        ticks: {
-                            callback: function(value) {
-                                return value + '%';
-                            }
-                        }
+                    legend: {
+                        position: 'top',
                     },
-                    y: {
-                        grid: { display: false }
+                    title: {
+                        display: false,
                     }
-                },
-                plugins: {
-                    ...sharedOptions.plugins,
-                    legend: { display: false }
                 }
             }
         });
 
-        const regionalDataCtx = document.getElementById('regionalChart').getContext('2d');
-        new Chart(regionalDataCtx, {
-            type: 'bar',
-            data: {
-                labels: ['전라남도', '전국 평균', '경기도'],
-                datasets: [{
-                    label: '양육 가구 비율 (%)',
-                    data: [25.4, 28.6, 32.1],
-                    backgroundColor: [PALETTE.darkBlue, PALETTE.blue, PALETTE.green],
-                    borderColor: [PALETTE.darkBlue, PALETTE.blue, PALETTE.green],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                ...sharedOptions,
-                indexAxis: 'y',
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        grid: { color: GRID_COLOR },
-                        ticks: {
-                            callback: function(value) {
-                                return value + '%';
-                            }
-                        }
-                    },
-                    y: {
-                        grid: { display: false }
-                    }
-                },
-                plugins: {
-                    ...sharedOptions.plugins,
-                    legend: { display: false }
-                }
-            }
+        // 상세 정보 목록 생성
+        const detailsContainer = document.getElementById('detailsContainer');
+        labels.forEach(type => {
+            const hospitals = hospitalData[type].list;
+            const hospitalCount = hospitalData[type].count;
+            
+            // 컨테이너 요소 생성
+            const toggleButton = document.createElement('div');
+            toggleButton.className = 'toggle-button rounded-xl shadow-md transition-all duration-300 hover:bg-gray-200';
+            toggleButton.innerHTML = `<span class="text-lg font-semibold">${type} (${hospitalCount}개)</span><span class="transform transition-transform duration-300">▼</span>`;
+
+            const detailsSection = document.createElement('div');
+            detailsSection.className = 'details-section p-4 rounded-xl shadow-sm';
+
+            const ul = document.createElement('ul');
+            ul.className = 'list-disc list-inside space-y-2';
+
+            hospitals.forEach(h => {
+                const li = document.createElement('li');
+                li.innerHTML = `<p class="font-bold text-gray-800">${h.name}</p><p class="text-sm text-gray-500">${h.address}</p>`;
+                ul.appendChild(li);
+            });
+
+            detailsSection.appendChild(ul);
+            detailsContainer.appendChild(toggleButton);
+            detailsContainer.appendChild(detailsSection);
+
+            // 토글 기능 추가
+            toggleButton.addEventListener('click', () => {
+                const arrow = toggleButton.querySelector('span:last-child');
+                detailsSection.classList.toggle('open');
+                arrow.classList.toggle('rotate-180');
+            });
         });
-    </script>
+    };
+</script>
+
 </body>
 </html>
